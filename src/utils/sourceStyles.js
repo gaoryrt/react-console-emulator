@@ -8,7 +8,7 @@ export const sourceStyles = {
   },
   content: {
     padding: '20px',
-    height: '100%',
+    height: '100%'
   },
   inputArea: {
     display: 'inline-flex',

@@ -144,7 +144,9 @@ export default class Terminal extends React.Component {
       const safe = <div key={i} className={stdoutClass}>{line}</div>
       const dangerous = <div key={i} className={stdoutClass} {...html(line)}></div>
 
-      return this.props.dangerMode ? dangerous : safe
+      return !this.props.dangerMode || typeof line === 'object'
+        ? safe
+        : dangerous
     })
   }
 
@@ -166,12 +168,13 @@ export default class Terminal extends React.Component {
       const input = rawInput.split(' ')
       const command = input.splice(0, 1)[0] // Removed portion is returned...
       const args = input // ...and the rest can be used
-
       if (!this.props.noAutomaticStdout) {
         this.pushToStdout([
-            this.props.promptLabel
+          this.props.promptLabel
+            ? typeof this.props.promptLabel === 'function'
               ? this.props.promptLabel()
-              : '$',
+              : this.props.promptLabel
+            : '$',
             <span key={rawInput} className={this.props.historyCommandClassName}>{rawInput}</span>
           ],
           this.props.noHistory
@@ -188,10 +191,17 @@ export default class Terminal extends React.Component {
         const cmdObj = this.state.commands[command]
 
         if (!cmdObj) {
-          const errorLabelFn = this.props.errorLabel
-            ? this.props.errorLabel
-            : command => <span>{`Command '${command}' not found!`}</span>
-          this.pushToStdout(errorLabelFn(command))
+          this.pushToStdout(
+            this.props.errorLabel
+            ? typeof this.props.errorLabel === 'string'
+              ? this.props.errorLabel
+              : this.props.errorLabel(command)
+            : <span>{`Command '${command}' not found!`}</span>
+          )
+          // const errorLabelFn = this.props.errorLabel
+          //   ? this.props.errorLabel
+          //   : command => <span>{`Command '${command}' not found!`}</span>
+          // this.pushToStdout(errorLabelFn(command))
         }
         else {
           const res = cmdObj.fn(...args)
@@ -325,7 +335,9 @@ export default class Terminal extends React.Component {
           >
             {
               this.props.promptLabel
+                ? typeof this.props.promptLabel === 'function'
                 ? this.props.promptLabel()
+                : this.props.promptLabel
                 : '$'
             }
             <input
@@ -336,7 +348,7 @@ export default class Terminal extends React.Component {
               type={'text'}
               onKeyDown={this.handleInput}
               disabled={this.props.disableOnProcess && this.state.processing}
-              autoComplete="off"
+              autoComplete='off'
             />
           </div>
         </div>
